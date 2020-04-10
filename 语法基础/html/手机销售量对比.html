@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Awesome-pyecharts</title>
+            <script type="text/javascript" src="https://assets.pyecharts.org/assets/echarts.min.js"></script>
+        <script type="text/javascript" src="https://assets.pyecharts.org/assets/themes/chalk.js"></script>
+
+</head>
+<body>
+    <div id="21a0f4bca93944738c02a701c4b834d1" class="chart-container" style="width:900px; height:500px;"></div>
+    <script>
+        var chart_21a0f4bca93944738c02a701c4b834d1 = echarts.init(
+            document.getElementById('21a0f4bca93944738c02a701c4b834d1'), 'chalk', {renderer: 'canvas'});
+        var option_21a0f4bca93944738c02a701c4b834d1 = {
+    "animation": true,
+    "animationThreshold": 2000,
+    "animationDuration": 1000,
+    "animationEasing": "cubicOut",
+    "animationDelay": 0,
+    "animationDurationUpdate": 300,
+    "animationEasingUpdate": "cubicOut",
+    "animationDelayUpdate": 0,
+    "series": [
+        {
+            "type": "bar",
+            "name": "2018\u5e74",
+            "data": [
+                5180,
+                4690,
+                3120,
+                3300,
+                4690,
+                12460
+            ],
+            "barCategoryGap": "20%",
+            "label": {
+                "show": true,
+                "position": "top",
+                "margin": 8
+            }
+        },
+        {
+            "type": "bar",
+            "name": "2019\u5e74",
+            "data": [
+                6670,
+                3950,
+                2940,
+                3230,
+                4560,
+                11410
+            ],
+            "barCategoryGap": "20%",
+            "label": {
+                "show": true,
+                "position": "top",
+                "margin": 8
+            }
+        }
+    ],
+    "legend": [
+        {
+            "data": [
+                "2018\u5e74",
+                "2019\u5e74"
+            ],
+            "selected": {
+                "2018\u5e74": true,
+                "2019\u5e74": true
+            },
+            "show": true,
+            "padding": 5,
+            "itemGap": 10,
+            "itemWidth": 25,
+            "itemHeight": 14
+        }
+    ],
+    "tooltip": {
+        "show": true,
+        "trigger": "item",
+        "triggerOn": "mousemove|click",
+        "axisPointer": {
+            "type": "line"
+        },
+        "textStyle": {
+            "fontSize": 14
+        },
+        "borderWidth": 0
+    },
+    "xAxis": [
+        {
+            "show": true,
+            "scale": false,
+            "nameLocation": "end",
+            "nameGap": 15,
+            "gridIndex": 0,
+            "inverse": false,
+            "offset": 0,
+            "splitNumber": 5,
+            "minInterval": 0,
+            "splitLine": {
+                "show": false,
+                "lineStyle": {
+                    "show": true,
+                    "width": 1,
+                    "opacity": 1,
+                    "curveness": 0,
+                    "type": "solid"
+                }
+            },
+            "data": [
+                "Huawei",
+                "Vivo",
+                "Oppo",
+                "Xiaomi",
+                "Apple",
+                "Others"
+            ]
+        }
+    ],
+    "yAxis": [
+        {
+            "show": true,
+            "scale": false,
+            "nameLocation": "end",
+            "nameGap": 15,
+            "gridIndex": 0,
+            "inverse": false,
+            "offset": 0,
+            "splitNumber": 5,
+            "minInterval": 0,
+            "splitLine": {
+                "show": false,
+                "lineStyle": {
+                    "show": true,
+                    "width": 1,
+                    "opacity": 1,
+                    "curveness": 0,
+                    "type": "solid"
+                }
+            }
+        }
+    ],
+    "title": [
+        {
+            "text": "\u624b\u673a\u9500\u552e\u91cf\u5bf9\u6bd4/\u5355\u4f4d\uff08\u4e07\uff09",
+            "subtext": "2018-2019",
+            "padding": 5,
+            "itemGap": 10
+        }
+    ]
+};
+        chart_21a0f4bca93944738c02a701c4b834d1.setOption(option_21a0f4bca93944738c02a701c4b834d1);
+    </script>
+</body>
+</html>
