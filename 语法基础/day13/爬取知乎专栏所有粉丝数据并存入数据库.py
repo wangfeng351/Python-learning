@@ -12,13 +12,17 @@ def crawl():
         time.sleep(1)
         url = "https://www.zhihu.com/api/v4/columns/zuimei/followers?include=data%5B*%5D.follower_count%2Cgender%2Cis_followed%2Cis_following&offset=" + \
             str(offset)+"&limit=20"
-        print(url)
         headers = {
         "user-agent": "Mozilla/5.0(Windows NT 10.0; Win64; x64"
         "AppleWebKit/537.6(KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36"
         }
         response = requests.get(url,headers=headers)
         followers_data += response.json().get("data")
+    try:
+        with open('./语法基础/res/json/test11.json', 'w', encoding='utf-8') as fs:
+            json.dump(followers_data, fs)
+    except IOError as e:
+        print(e)
     return followers_data
 
 def data_insert(followers_data):
@@ -47,4 +51,4 @@ def data_insert(followers_data):
 if __name__ == "__main__":
     list = crawl()
     print(list)
-    data_insert(list)
+    # data_insert(list)

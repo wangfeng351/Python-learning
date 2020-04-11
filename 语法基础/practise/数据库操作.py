@@ -9,12 +9,11 @@ def data_select():
     db = pymysql.connect("localhost", "root", "root", "db_python")
     # 获得游标
     cursor = db.cursor()
-    sql = "SELECT * FROM t_follower"
+    sql = "SELECT * FROM t_follower WHERE gender>-1"
     try:
         cursor.execute(sql)
         # 执行sql
-        results = cursor.fetchone()
-        print('1243')
+        results = cursor.fetchall()
         # 打印结果
         print(results)
     except:
