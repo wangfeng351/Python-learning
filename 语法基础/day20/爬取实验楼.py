@@ -9,17 +9,16 @@ def crawl():
         content = requests.get(url)
         tree = html.fromstring(content.text)
         course_names = tree.xpath('//h6[@class="course-name"]/text()')
-        course_descriptions = tree.xpath(
-            '//div[@class="course-description"]/text()')
-            course_covers = tree.xpath('//img[@class="cover-image"]/@src')
-            for index in range(0, len(course_names) - 1)
-                temp_dict = {}
-                temp_dict['name'] = course_names[index].strip()
-                temp_dict['description'] = course_descriptions[index].strip()
-                temp_dict['cover'] = course_covers[index]
-                course_list.append(temp_dict)
-                # print(len(course_list))
-        return course_list
+        course_descriptions = tree.xpath('//div[@class="course-description"]/text()')
+        course_covers = tree.xpath('//img[@class="cover-image"]/@src')
+        for index in range(0, len(course_names)-1):
+            temp_dict = {}
+            temp_dict['name'] = course_names[index].strip()
+            temp_dict['description'] = course_descriptions[index].strip()
+            temp_dict['cover'] = course_covers[index]
+            course_list.append(temp_dict)
+            # print(len(course_list))
+    return course_list
 
 
 if __name__ == '__main__':
