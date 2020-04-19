@@ -5,6 +5,7 @@ import pymysql
 import time
 import random
 import uuid
+from urllib import request
 from faker import Faker
 fake = Faker(locale='zh_CN')
 
@@ -13,23 +14,6 @@ headers = {
     'origin': 'https://music.163.com',
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Mobile Safari/537.36',
 }
-
-
-def get_song():
-    url = 'https://music.163.com/weapi/v6/playlist/detail?csrf_token=cd7bb5e8c6e740481ae96c662e06a751'
-    data = {
-        'encSecKey': '4021383c6a8d10bc8d966c59bd8d1488a3535d5596c53d8e508ee5a540dc8179b70f8d3d0bb90b42a520325fc3085c2d3a1a203bc34b1b4f023e7043625f4ab4b6c93c8be855d83c7b438d9f15989b72f6b599a5c4cf922d616b39fcad8bb4a45c3b46669c7eb1e21409fddc79a973f570fc771972087f0664c7f57c4960aa7e',
-        'params': 'a2w1fX1HEHrYHV/w5f0SCm/a/9fSTn2T9d3/iWk8vPV8DAdL2Mijjt3PNWSd3uLqBM32O7tu3MTy4Sy//BIk0K+tcc/P1jCdqe15WqMQK+Ir5UFbjIgxw1krdSd5YoI2g53EFtgIENw/IDWjpbtOT1uelUIkoIRlS7aTeSgNunPGipkt7lNilmTqsRigdMAV'
-    }
-    headers = {
-        'cookie': '_ntes_nnid=afc0b8c00fad7edac3529e13eb239079,1571915383131; _ntes_nuid=afc0b8c00fad7edac3529e13eb239079; __remember_me=true; WM_TID=YqM7BhU3VFBAVQBERUJ%2BUg%2Bozg%2BbhufE; MUSICIAN_COMPANY_LAST_ENTRY=316304066_musician; ntes_kaola_ad=1; WM_NI=8ccty8AYLgtKA5VvZoxNL9GiPnJnWaoCsUHIMlqs8rINtCNokTXpcogr2spFzUHcgOc0j82HgOTFATWvMUT%2FPegwi3Bd67p5xn00l2CrAO27Xrff%2B%2B76zJqs4cVDAtKJa1U%3D; WM_NIKE=9ca17ae2e6ffcda170e2e6eed4fb7fb18a97d1e56bb19a8eb6c55b928b9baef15ead9afc82bb5ffcea96a9dc2af0fea7c3b92afcbdad95fc3483878488f74183eb9a97d965bc9284dac66394b2868fd66bad9dbdb6cb438fb4bf94bb7a8b92bca4cd65a98c9891e265a5aefe94f34eba8b8884e645a1f0a6d9b144a5919ca7c46095aa83b6d72594bba998ec3982bcfad8f33fbcb200d1ef3a81ae8fb0b13d9caeaa87aa21f5eab6abf479f8bd9aa5c4808996afd2d837e2a3; _iuqxldmzr_=33; JSESSIONID-WYYY=4vZFNPbaFcTomgzjs%2BZw3IXEtsZJU1zV9nXX2mJSys06YtWQNYC4EbHFjEO4Zhr05y5YpP087zMg7CJ0UQ%5CUOSF8z60xv6IGzsRzDy1NiBo8Xj157zfPUNIxX54jw1Vk685eMCXWDg6Tdu0u7NPFI45uCPf3PZTt2U60AAZZOqE6aHU%2B%3A1587102528986; playerid=55462361; MUSIC_U=ce1299bbfe2c8ced31eb76bf7c9a11bfcadf7a4d0478731a0d3bc96c04292f92f6dbb9e080384a87c20b862285ca8ec87955a739ab43dce1; __csrf=cd7bb5e8c6e740481ae96c662e06a751',
-        'origin': 'https://music.163.com',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Mobile Safari/537.36',
-    }
-    response = requests.post(url, data=data, headers=headers)
-    with open('./语法基础/res/json/cloud.json', 'w') as fs:
-        json.dump(response.json(), fs,  ensure_ascii=False)
-    print(response.json())
 
 
 def get_comment():
@@ -52,18 +36,158 @@ def get_comment():
 # 歌单评论
 
 
+def get_song_list():
+    db = pymysql.connect(
+        "rm-m5ee476bu350735gjeo.mysql.rds.aliyuncs.com", "root", "XuNiit_#", "cloud_music")
+    cursor = db.cursor()
+    sql = 'SELECT song_list_id FROM song_list'
+    try:
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        db.commit()
+    except:
+        db.rollback()
+    finally:
+        db.close()
+    return results
+
+# 获取歌曲id
+
+
+def get_song():
+    db = pymysql.connect(
+        "rm-m5ee476bu350735gjeo.mysql.rds.aliyuncs.com", "root", "XuNiit_#", "cloud_music")
+    cursor = db.cursor()
+    sql = 'SELECT song_id FROM song'
+    try:
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        db.commit()
+    except:
+        db.rollback()
+    finally:
+        db.close()
+    return results
+
+
+def insert_user1(song_id):
+    db = pymysql.connect(
+        "rm-m5ee476bu350735gjeo.mysql.rds.aliyuncs.com", "root", "XuNiit_#", "cloud_music")
+    cursor = db.cursor()
+    val = []
+    for offset in range(0, 500, 100):
+        url = 'http://music.163.com/api/v1/resource/comments/R_SO_4_' + \
+            str(song_id) + '?limit=100&offset=' + str(offset)
+        resp = requests.get(url, headers=headers)
+        try:
+            comments = resp.json()['comments']
+        except:
+            return
+        for dic in comments:
+            userId = dic['user']['userId']
+            url = "https://music.163.com/api/v1/user/detail/" + str(userId)
+            resp = requests.get(url, headers=headers)
+            try:
+                user = resp.json()['profile']
+            except:
+                continue
+            address = fake.province() + fake.city_name()
+            email = ''
+            for i in range(0, 10):
+                email += str(random.randint(0, 9))
+            email += '@qq.com'
+            key_id = uuid.uuid1()
+            user_item = (userId, fake.name(), user['nickname'], '123456', fake.phone_number(), email, user['avatarUrl'], user['gender'], address, '0', '0', timeStamp(
+                user['createTime']), timeStamp(user['createTime']), str(key_id).replace('-', ''))
+            val.append(user_item)
+        sql = 'INSERT IGNORE INTO user(user_id, user_name, nick_name, password, phone, email, avatar, gender,address, cloud_coin, delete_flag, update_time, create_time, salt) VALUES (%s,%s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+        # sql = "INSERT INTO user(user_id, user_nickname, avatar, update_time, create_time) VALUES(%s, %s, %s, %s, %s)"
+        try:
+            cursor.executemany(sql, val)
+            db.commit()
+        # except:
+        #     db.rollback()
+        finally:
+            db.close()
+
+
+def get_song(datas):
+    for id in datas:
+        url = 'http://music.163.com/api/album/' + str(id) + '?limit=50'
+        data = requests.get(url)['album']['songs']
+        insert_song(data)
+
+
+def insert_song1(datas):
+    db = pymysql.connect(
+        "rm-m5ee476bu350735gjeo.mysql.rds.aliyuncs.com", "root", "XuNiit_#", "cloud_music")
+    cursor = db.cursor()
+    val = []
+    # 查询歌单歌曲
+    # insert_song_list_music(resp.json()['playlist'])
+    id = ''
+    id_list = []
+    for song in datas:
+        id += str(song['id']) + ','
+        id_list.append(song['id'])
+    id = id[0: len(id)-1]
+    # 抓取歌曲评论信息
+    # get_song_comment(id_list)
+    song_detail_url = 'http://localhost:3000/song/detail?ids=' + id
+    resp1 = requests.get(song_detail_url, headers=headers)
+    try:
+        songs = resp1.json()['songs']
+    except:
+        songs = []
+    # print(songs)
+    val = []
+    for song1 in songs:
+        song_url = 'http://music.163.com/song/media/outer/url?id=' + \
+            str(song1['id']) + '.mp3'
+        lrc_url = 'http://localhost:3000/lyric?id=' + str(song1['id'])
+        lrc_data = requests.get(lrc_url, headers=headers).json()
+        # print(song1['id'])
+        try:
+            lrc = lrc_data['lrc']['lyric']
+        except:
+            lrc = " "
+        item = (song1['id'], song1['name'], 0, song1['ar'][0]['name'], songTimeStamp(song1['dt']), song1['al']['picUrl'],
+                song_url, lrc, 1000, 0, 0, 0, timeStamp(song1['publishTime']), timeStamp(song1['publishTime']))
+        val.append(item)
+    print(val)
+    sql = "INSERT IGNORE INTO song(song_id, song_name, sort_id, singer, duration, thumbnail, url, lyric, comment_count, like_count, play_count, delete_flag, create_time, update_time) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+    # sql = "INSERT INTO user(user_id, user_nickname, avatar, update_time, create_time) VALUES(%s, %s, %s, %s, %s)"
+    try:
+        cursor.executemany(sql, val)
+        db.commit()
+    except:
+        db.rollback()
+    finally:
+        db.close()
+# 练习
+
+# 插入歌单评论
+
+
 def get_song_list_comment(song_list_id):
-    for item in range(0, 1000, 100):
-        url = 'http://music.163.com/api/v1/resource/comments/A_PL_0_' + \
+    url1 = 'http://localhost:3000/comment/playlist?id=' + song_list_id
+    resp1 = requests.get(url1, headers=headers)
+    data1 = resp1.json()
+    try:
+        total = data1['total']
+    except:
+        total = 0
+    if(total > 1000):
+        total = 1000
+    for item in range(0, total, 100):
+        url = 'http://localhost:3000/comment/playlist?id=' + \
             str(song_list_id) + '?limit=2' + '&offset=' + str(item)
         resp = requests.get(url, headers=headers)
         data = resp.json()
-        insert_song_list(data)
         insert_song_list_comment(data, song_list_id)
         insert_user(data)
-        insert_user_song_list(data)
-
-# 插入歌单评论
+        # insert_song_list(data)
+        # insert_user_song_list(data)
 
 
 def insert_song_list_comment(song_list_data, song_list_id):
@@ -71,8 +195,15 @@ def insert_song_list_comment(song_list_data, song_list_id):
         "rm-m5ee476bu350735gjeo.mysql.rds.aliyuncs.com", "root", "XuNiit_#", "cloud_music")
     cursor = db.cursor()
     val = []
-    for dic in song_list_data['comments']:
-        user = dic['user']
+    try:
+        comments = song_list_data['comments']
+    except:
+        comments = []
+    for dic in comments:
+        try:
+            user = dic['user']
+        except:
+            return
         # user_item = (user['userId'],'123', user['nickname'], user['avatarUrl'],'2000-1-1 20:00:00', '2000-1-1 20:00:00')
         comment = (str(dic['commentId']), song_list_id, str(
             user['userId']), dic['content'], dic['likedCount'], timeStamp(dic['time']), timeStamp(dic['time']))
@@ -97,7 +228,11 @@ def insert_user(song_list_data):
         "rm-m5ee476bu350735gjeo.mysql.rds.aliyuncs.com", "root", "XuNiit_#", "cloud_music")
     cursor = db.cursor()
     val = []
-    for dic in song_list_data['comments']:
+    try:
+        comments = song_list_data['comments']
+    except:
+        return
+    for dic in comments:
         userId = dic['user']['userId']
         url = "https://music.163.com/api/v1/user/detail/" + str(userId)
         resp = requests.get(url, headers=headers)
@@ -107,12 +242,11 @@ def insert_user(song_list_data):
         for i in range(0, 10):
             email += str(random.randint(0, 9))
         email += '@qq.com'
+        print(user['userPoint']['userId'])
         key_id = uuid.uuid1()
-        user_item = (user['userPoint']['userId'], fake.name(), user['profile']['nickname'], '123456', fake.phone_number(), email, user['profile']
-                     ['avatarUrl'], user['profile']['gender'], address, '0', '0', timeStamp(user['userPoint']['updateTime']), timeStamp(user['profile']['createTime']), str(key_id).replace(
-            '-', ''))
+        user_item = (user['userPoint']['userId'], fake.name(), user['profile']['nickname'], '123456', fake.phone_number(), email, user['profile']['avatarUrl'],
+                     user['profile']['gender'], address, '0', '0', timeStamp(user['userPoint']['updateTime']), timeStamp(user['profile']['createTime']), str(key_id).replace('-', ''))
         val.append(user_item)
-    print(len(val))
     with open('./语法基础/res/json/val111.json', 'w') as fs:
         json.dump(val, fs,  ensure_ascii=False)
     sql = 'INSERT IGNORE INTO user(user_id, user_name, nick_name, password, phone, email, avatar, gender,address, cloud_coin, delete_flag, update_time, create_time, salt) VALUES (%s,%s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
@@ -133,12 +267,20 @@ def insert_user_song_list(song_list_data):
         "rm-m5ee476bu350735gjeo.mysql.rds.aliyuncs.com", "root", "XuNiit_#", "cloud_music")
     cursor = db.cursor()
     val = []
-    for dic in song_list_data['comments']:
+    try:
+        comments = song_list_data['comments']
+    except:
+        return
+    for dic in comments:
         userId = dic['user']['userId']
         url = "http://localhost:3000/user/playlist?uid=" + str(userId)
         resp = requests.get(url, headers=headers)
         user_song_list = resp.json()
-        for ls in user_song_list['playlist']:
+        try:
+            playlists = user_song_list['playlist']
+        except:
+            continue
+        for ls in playlists:
             key_id = uuid.uuid1()
             item = (str(key_id).replace('-', ''), ls['id'], ls['creator']['userId'], timeStamp(
                 ls['createTime']), timeStamp(ls['updateTime']))
@@ -205,47 +347,53 @@ def insert_song(song_list_id):
     cursor = db.cursor()
     val = []
     print(song_list_id)
-    url = 'https://music.163.com/api/playlist/detail?id=' + str(song_list_id)
+    url = 'http://localhost:3000/playlist/detail?id=' + str(song_list_id)
     resp = requests.get(url, headers=headers)
-    tracks = resp.json()['result']['tracks']
-    # 查询歌单歌曲
-    insert_song_list_music(resp.json()['result'])
-    id = ''
-    id_list = []
-    for song in tracks:
-        id += str(song['id']) + ','
-        id_list.append(song['id'])
-    id = id[0: len(id)-1]
-    # 抓取歌曲评论信息
-    # get_song_comment(id_list)
-    song_detail_url = 'http://localhost:3000/song/detail?ids=' + id
-    resp1 = requests.get(song_detail_url, headers=headers)
-    songs = resp1.json()['songs']
-    # print(songs)
-    val = []
-    for song1 in songs:
-        song_url = 'http://music.163.com/song/media/outer/url?id=' + \
-            str(song1['id']) + '.mp3'
-        lrc_url = 'http://localhost:3000/lyric?id=' + str(song1['id'])
-        lrc_data = requests.get(lrc_url, headers=headers).json()
-        # print(song1['id'])
-        try:
-            lrc = lrc_data['lrc']['lyric']
-        except:
-            lrc = " "
-        item = (song1['id'], song1['name'], 0, song1['ar'][0]['name'], songTimeStamp(song1['dt']), song1['al']['picUrl'],
-                song_url, lrc, 1000, 0, 0, 0, timeStamp(song1['publishTime']), timeStamp(song1['publishTime']))
-        val.append(item)
-    print(val)
-    sql = "INSERT IGNORE INTO song(song_id, song_name, sort_id, singer, duration, thumbnail, url, lyric, comment_count, like_count, play_count, delete_flag, create_time, update_time) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-    # sql = "INSERT INTO user(user_id, user_nickname, avatar, update_time, create_time) VALUES(%s, %s, %s, %s, %s)"
     try:
-        cursor.executemany(sql, val)
-        db.commit()
+        tracks = resp.json()['playlist']['tracks']
     except:
-        db.rollback()
-    finally:
-        db.close()
+        return
+    # 查询歌单歌曲
+    insert_song_list_music(resp.json()['playlist'])
+    # id = ''
+    # id_list = []
+    # for song in tracks:
+    #     id += str(song['id']) + ','
+    #     id_list.append(song['id'])
+    # id = id[0: len(id)-1]
+    # # 抓取歌曲评论信息
+    # # get_song_comment(id_list)
+    # song_detail_url = 'http://localhost:3000/song/detail?ids=' + id
+    # resp1 = requests.get(song_detail_url, headers=headers)
+    # try:
+    #     songs = resp1.json()['songs']
+    # except:
+    #     songs =[]
+    # # print(songs)
+    # val = []
+    # for song1 in songs:
+    #     song_url = 'http://music.163.com/song/media/outer/url?id=' + \
+    #         str(song1['id']) + '.mp3'
+    #     lrc_url = 'http://localhost:3000/lyric?id=' + str(song1['id'])
+    #     lrc_data = requests.get(lrc_url, headers=headers).json()
+    #     # print(song1['id'])
+    #     try:
+    #         lrc = lrc_data['lrc']['lyric']
+    #     except:
+    #         lrc = " "
+    #     item = (song1['id'], song1['name'], 0, song1['ar'][0]['name'], songTimeStamp(song1['dt']), song1['al']['picUrl'],
+    #             song_url, lrc, 1000, 0, 0, 0, timeStamp(song1['publishTime']), timeStamp(song1['publishTime']))
+    #     val.append(item)
+    # print(val)
+    # sql = "INSERT IGNORE INTO song(song_id, song_name, sort_id, singer, duration, thumbnail, url, lyric, comment_count, like_count, play_count, delete_flag, create_time, update_time) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+    # # sql = "INSERT INTO user(user_id, user_nickname, avatar, update_time, create_time) VALUES(%s, %s, %s, %s, %s)"
+    # try:
+    #     cursor.executemany(sql, val)
+    #     db.commit()
+    # except:
+    #     db.rollback()
+    # finally:
+    #     db.close()
 
 # 查询歌曲评论
 
@@ -253,20 +401,29 @@ def insert_song(song_list_id):
 def get_song_comment(song_id_data):
     print(song_id_data)
     for song_id in song_id_data:
-        song_url = 'http://music.163.com/api/v1/resource/comments/R_SO_4_' + \
+        song_url = 'http://localhost:3000/comment/music?id=' + \
             str(song_id)
         resp = requests.get(song_url, headers=headers)
-        total = resp.json()['total']
+        try:
+            total = resp.json()['total']
+        except:
+            total = 0
         print("数量", total)
         if(total > 1000):
             total = 1000
         for offset in range(0, total, 100):
-            song_comment_url = 'http://music.163.com/api/v1/resource/comments/R_SO_4_' + \
+            song_comment_url = 'http://localhost:3000/comment/music?id=' + \
                 str(song_id) + '?limit=100&offset=' + str(offset)
             # 歌曲评论内容
+            # try:
+            #     ['comments']
+            # except:
+            #     comment_data = []
+            # insert_song_comment(comment_data)
             comment_data = requests.get(
-                song_comment_url, headers=headers).json()['comments']
-            insert_song_comment(comment_data)
+                song_comment_url, headers=headers).json()
+            insert_user(comment_data)
+            # insert_user_song_list(comment_data)
 
 # 插入歌曲评论
 
@@ -306,12 +463,13 @@ def insert_song_list_music(datas):
             ratio = data['ratio']
         except:
             ratio = ''
-        item = (datas['id'], data['id'], timeStamp(
+        key_id = uuid.uuid1()
+        item = (str(key_id).replace('-', ''), datas['id'], data['id'], timeStamp(
             datas['createTime']), timeStamp(datas['updateTime']), ratio)
         val.append(item)
     with open('./语法基础/res/json/song_list_music.json', 'w') as fs:
         json.dump(val, fs,  ensure_ascii=False)
-    sql = "INSERT IGNORE INTO song_list_music(song_list_id, song_id, create_time, update_time, ratio) VALUES (%s,%s,%s,%s,%s)"
+    sql = "INSERT IGNORE INTO song_list_music(id,song_list_id, song_id, create_time, update_time, ratio) VALUES (%s,%s,%s,%s,%s,%s)"
     # sql = "INSERT INTO user(user_id, user_nickname, avatar, update_time, create_time) VALUES(%s, %s, %s, %s, %s)"
     try:
         cursor.executemany(sql, val)
@@ -342,8 +500,6 @@ def get_type():
     return types
 
 # 插入歌单类型
-
-
 def insert_type(datas):
     db = pymysql.connect(
         "rm-m5ee476bu350735gjeo.mysql.rds.aliyuncs.com", "root", "XuNiit_#", "cloud_music")
@@ -463,11 +619,80 @@ def songTimeStamp(time):
     seconds = int(time/1000 % 60)
     minutes = int(time/1000/60)
     if(seconds < 10):
-        seconds = '0' + ":" + str(seconds)
+        seconds = '0' + str(seconds)
     if(minutes <= 9):
         minutes = '0' + str(minutes)
     return str(minutes) + ":" + str(seconds)
 
+
+# 取出歌曲id
+def get_song_id():
+    db = pymysql.connect(
+        "rm-m5ee476bu350735gjeo.mysql.rds.aliyuncs.com", "root", "XuNiit_#", "cloud_music")
+    cursor = db.cursor()
+    sql = " SELECT song_id FROM song WHERE lyric=1"
+    # sql = "INSERT INTO song_type(type_id, type_name, song_count, delete_flag, update_time, create_time, type) VALUES ('ebd9f36e814711eaa0d0b4b686bbf77b', 'Bossa Nova', 1000, 0, '1970-01-19 16:53:15', '1970-01-19 16:53:15', 1)"
+    results = []
+    try:
+        cursor.execute(sql)
+        results = cursor.fetchall()
+    except:
+        db.rollback()
+    finally:
+        db.close()
+    return results
+
+
+def get_song_ly(id):
+    print(id)
+    url = 'http://localhost:3000/lyric?id=' + str(id)
+    proxy = {'https':'123.57.84.116'}
+    resp = requests.get(url, proxies=proxy, headers=headers).json()
+    lrc = ''
+    try:
+        lrc = resp['lrc']['lyric']
+    except:
+        lrc = ''
+    print(resp)
+    fill_song_ly(lrc, id)
+
+# 补充歌词
+
+
+def fill_song_ly(lyric, song_id):
+    db = pymysql.connect(
+        "rm-m5ee476bu350735gjeo.mysql.rds.aliyuncs.com", "root", "XuNiit_#", "cloud_music")
+    cursor = db.cursor()
+    sql = "UPDATE song SET lyric='%s' WHERE song_id='%s';" % (lyric, song_id)
+    # print(lyric)
+    # sql = "INSERT INTO song_type(type_id, type_name, song_count, delete_flag, update_time, create_time, type) VALUES ('ebd9f36e814711eaa0d0b4b686bbf77b', 'Bossa Nova', 1000, 0, '1970-01-19 16:53:15', '1970-01-19 16:53:15', 1)"
+    try:
+        cursor.execute(sql)
+        # cursor.execute(sql)
+        db.commit()
+    except:
+        db.rollback()
+    finally:
+        db.close()
+
+
+def proxy_ip():
+    #访问网址
+    url = 'http://localhost:3000/lyric?id=1304720982'
+    #这是代理IP
+    proxy = {'https':'120.236.128.201:8060'}
+    resp = requests.get(url, proxies=proxy, headers=headers).json()
+    print(resp)
+    # #创建ProxyHandler
+    # proxy_support = request.ProxyHandler(proxy)
+    # #创建Opener
+    # opener = request.build_opener(proxy_support)
+    # #添加User Angent
+    # opener.addheaders = [headers]
+    # #安装OPener
+    # request.install_opener(opener)
+    # #使用自己安装好的Opener
+    # response = request.urlopen(url).json()
 
 if __name__ == '__main__':
     # insert_song_list()
@@ -487,6 +712,16 @@ if __name__ == '__main__':
     # data = resp.json()['result']
     # insert_song_list_music(data)
     # get_top_list()
-    get_type()
-    
+
+    # list = get_song_list()
+    # for i in list[200:len(list)]:
+    #     song_list_id = str(i).replace('(', '').replace(',', '').replace(')', '').replace("'",'')
+    #     insert_song(song_list_id)
+    # list = get_song_id()
+    # for ls in list:
+    #     id = str(ls).replace('(', '').replace(',', '').replace(')', '').replace("'",'')
+    #     get_song_ly(id)
+    proxy_ip()
+    # get_song_ly(1304720982)
+    # get_song_list_comment(song_list_id)
     # get_song_like(3136952023)
