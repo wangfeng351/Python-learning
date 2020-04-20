@@ -500,6 +500,8 @@ def get_type():
     return types
 
 # 插入歌单类型
+
+
 def insert_type(datas):
     db = pymysql.connect(
         "rm-m5ee476bu350735gjeo.mysql.rds.aliyuncs.com", "root", "XuNiit_#", "cloud_music")
@@ -630,7 +632,7 @@ def get_song_id():
     db = pymysql.connect(
         "rm-m5ee476bu350735gjeo.mysql.rds.aliyuncs.com", "root", "XuNiit_#", "cloud_music")
     cursor = db.cursor()
-    sql = " SELECT song_id FROM song WHERE lyric=1"
+    sql = " SELECT song_id FROM song WHERE lyric = 1 "
     # sql = "INSERT INTO song_type(type_id, type_name, song_count, delete_flag, update_time, create_time, type) VALUES ('ebd9f36e814711eaa0d0b4b686bbf77b', 'Bossa Nova', 1000, 0, '1970-01-19 16:53:15', '1970-01-19 16:53:15', 1)"
     results = []
     try:
@@ -644,10 +646,8 @@ def get_song_id():
 
 
 def get_song_ly(id):
-    print(id)
     url = 'http://localhost:3000/lyric?id=' + str(id)
-    proxy = {'https':'123.57.84.116'}
-    resp = requests.get(url, proxies=proxy, headers=headers).json()
+    resp = requests.get(url, headers=headers).json()
     lrc = ''
     try:
         lrc = resp['lrc']['lyric']
@@ -657,13 +657,11 @@ def get_song_ly(id):
     fill_song_ly(lrc, id)
 
 # 补充歌词
-
-
 def fill_song_ly(lyric, song_id):
     db = pymysql.connect(
         "rm-m5ee476bu350735gjeo.mysql.rds.aliyuncs.com", "root", "XuNiit_#", "cloud_music")
     cursor = db.cursor()
-    sql = "UPDATE song SET lyric='%s' WHERE song_id='%s';" % (lyric, song_id)
+    sql = 'UPDATE song SET lyric="%s" WHERE song_id="%s";' % (lyric, song_id)
     # print(lyric)
     # sql = "INSERT INTO song_type(type_id, type_name, song_count, delete_flag, update_time, create_time, type) VALUES ('ebd9f36e814711eaa0d0b4b686bbf77b', 'Bossa Nova', 1000, 0, '1970-01-19 16:53:15', '1970-01-19 16:53:15', 1)"
     try:
@@ -677,11 +675,11 @@ def fill_song_ly(lyric, song_id):
 
 
 def proxy_ip():
-    #访问网址
-    url = 'http://localhost:3000/lyric?id=1304720982'
-    #这是代理IP
-    proxy = {'https':'120.236.128.201:8060'}
-    resp = requests.get(url, proxies=proxy, headers=headers).json()
+    # 访问网址
+    url = 'http://localhost:3000/lyric?id=1304720981'
+    # 这是代理IP
+    proxy = {'https': '120.236.128.201:8060'}
+    resp = requests.get(url, headers=headers).json()
     print(resp)
     # #创建ProxyHandler
     # proxy_support = request.ProxyHandler(proxy)
@@ -693,6 +691,7 @@ def proxy_ip():
     # request.install_opener(opener)
     # #使用自己安装好的Opener
     # response = request.urlopen(url).json()
+
 
 if __name__ == '__main__':
     # insert_song_list()
@@ -717,11 +716,13 @@ if __name__ == '__main__':
     # for i in list[200:len(list)]:
     #     song_list_id = str(i).replace('(', '').replace(',', '').replace(')', '').replace("'",'')
     #     insert_song(song_list_id)
-    # list = get_song_id()
-    # for ls in list:
-    #     id = str(ls).replace('(', '').replace(',', '').replace(')', '').replace("'",'')
-    #     get_song_ly(id)
-    proxy_ip()
+    list = get_song_id()
+    print(len(list))
+    for ls in list:
+        id = str(ls).replace('(', '').replace(
+            ',', '').replace(')', '').replace("'", '')
+        get_song_ly(id)
+    # proxy_ip()
     # get_song_ly(1304720982)
     # get_song_list_comment(song_list_id)
     # get_song_like(3136952023)
