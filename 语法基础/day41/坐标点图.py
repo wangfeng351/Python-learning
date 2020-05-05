@@ -1,3 +1,7 @@
+"""
+生成坐标点图
+@Date 2020.05.04
+"""
 from pyecharts.charts import Scatter
 import pyecharts.options as opts
 from random import uniform
